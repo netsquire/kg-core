@@ -1,3 +1,3 @@
 package cz.netsquire.kgcore.controler;
 
-public record AuthResponse (boolean ok, String user, String role){}
+public record AuthResponse (String user, String role){}
