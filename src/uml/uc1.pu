@@ -1,0 +1,35 @@
+@startuml Vehicle_Ownership_Transfer
+title Vehicle Ownership Transfer - Failure Paths
+
+autonumber
+skinparam ParticipantPadding 20
+
+actor "New User" as User
+participant "Mobile App" as App
+participant "Enrollment Service" as Cloud
+participant "Vehicle (TCU)" as Car
+
+== Failure Path A: Incorrect Pairing Code ==
+User -> App : Enters '999999' (Wrong Code)
+App -> Cloud : POST /verify-transfer (VIN, '999999')
+Cloud -> Cloud : Validate Code Match
+Cloud --> App : 401 Unauthorized: 'Invalid Code'
+App -> User : "Code does not match. Please try again (2 attempts left)."
+
+== Failure Path B: Vehicle Offline (Timeout) ==
+User -> App : Requests Pairing Code
+App -> Cloud : POST /initiate-transfer (VIN)
+Cloud -> Car : MQTT: DisplayPairingCode ('123456')
+... Wait 30 Seconds (Timeout) ...
+Car --[#red]> Cloud : [No Acknowledgment / Offline]
+Cloud --> App : 504 Gateway Timeout: 'Vehicle Unreachable'
+App -> User : "We can't reach your car. Ensure it is parked in an area with cellular signal."
+
+== Failure Path C: Security Lockout ==
+User -> App : Enters Wrong Code (3rd Time)
+App -> Cloud : POST /verify-transfer (VIN, 'wrong_code')
+Cloud -> Cloud : Exceeds Max Retries
+Cloud --> App : 403 Forbidden: 'Lockout'
+App -> User : "Too many attempts. Please contact Support or wait 24 hours."
+
+@endum
