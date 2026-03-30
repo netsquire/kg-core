@@ -11,6 +11,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class Api {
 
+    @PostMapping("/deepvision")
+    String deepVision(@RequestBody String box) {
+        System.out.println("--\nGOT (post) payload box: " + box);
+        String response = "DeepVision processed: " + box;
+        System.out.println("PRODUCED: " + response);
+        return response;
+    }
+
     @GetMapping({"/hello", "/hello/"})
     String hello() {
         return "General API: News, etc";

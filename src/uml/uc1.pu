@@ -12,7 +12,7 @@ participant "Vehicle (TCU)" as Car
 == Failure Path A: Incorrect Pairing Code ==
 User -> App : Enters '999999' (Wrong Code)
 App -> Cloud : POST /verify-transfer (VIN, '999999')
-Cloud -> Cloud : Validate Code Match
+Cloud -> Cloud : Validate Code Database
 Cloud --> App : 401 Unauthorized: 'Invalid Code'
 App -> User : "Code does not match. Please try again (2 attempts left)."
 

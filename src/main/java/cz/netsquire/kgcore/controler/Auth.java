@@ -28,7 +28,7 @@ public class Auth {
 
     @GetMapping("/v1/{user}/{password}")
     AuthResponse basicAuth(@PathVariable String user, @PathVariable String password) {
-        System.out.println("-- Came: " + user + " w " + password + "\n Basic AUTH response%n");
+        System.out.println("-- Came: " + user + " with passwd: " + password + "\n Basic AUTH response%n");
         return checkAuth(user, password);
     }
 

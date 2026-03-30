@@ -1,0 +1,32 @@
+@startuml
+skinparam backgroundColor #f8f8f8
+skinparam shadowing false
+skinparam state {
+  BackgroundColor<<active>> #e6ffe6
+  BorderColor<<active>> #00b300
+  FontColor<<active>> #004d00
+}
+
+[*] --> Idle
+
+state Idle {
+  [*] --> WaitingForInput
+}
+
+WaitingForInput --> Processing   : user clicks "Start"\nor timer expires
+WaitingForInput --> Error        : invalid input
+
+Processing --> WaitingForInput   : task completed
+Processing --> Saving            : auto-save triggered
+Processing --> Error             : exception thrown
+
+Saving --> WaitingForInput       : save successful
+Saving --> Error                 : save failed
+
+Error --> WaitingForInput        : user acknowledges
+Error --> [*]                    : timeout (3×)
+
+WaitingForInput -[hidden]> Processing
+Processing -[hidden]> Saving
+Saving -[hidden]> Error
+@enduml

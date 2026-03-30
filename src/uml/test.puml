@@ -1,0 +1,7 @@
+@startuml
+header Docker Power
+actor User
+participant "Local Server" as Server
+User -> Server : Request Diagram
+Server -> User : Rendered Image
+@enduml

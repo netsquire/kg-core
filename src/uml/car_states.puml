@@ -1,0 +1,35 @@
+@startuml
+' Change this value (1, 2, or 3) to generate different frames
+!$step = 1
+
+actor User
+participant "API Gateway" as API
+database "Inventory DB" as DB
+
+User -> API : Request Product
+activate API
+
+!if ($step == 1)
+    API -[#red,bold]> DB : Query Stock
+!else
+    API -> DB : Query Stock
+!endif
+
+activate DB
+
+!if ($step == 2)
+    DB -[#red,bold]> API : Stock Confirmed
+!else
+    DB -> API : Stock Confirmed
+!endif
+
+deactivate DB
+
+!if ($step == 3)
+    API -[#red,bold]> User : Return 200 OK
+!else
+    API -> User : Return 200 OK
+!endif
+
+deactivate API
+@enduml
