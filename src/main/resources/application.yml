@@ -1,4 +1,5 @@
 spring:
+  name: kgcore
   web:
     resources:
       static-locations:
@@ -6,5 +7,31 @@ spring:
 #        - classpath:/Users/netsquire/stage/kg-ui/
         - file:/Users/netsquire/stage/kg-ui
         - file:/var/www/shared/
+
   mvc:
     static-path-pattern: /**
+
+  ai:
+#    vertex:
+#      ai:
+#        gemini:
+#          project-id: gen-lang-client-0383062223
+#          location: us-central1
+#          chat:
+#            options:
+#              model: gemini-2.0-flash
+##              model: gemini-1.5-pro
+    google:
+      chat:
+        api-key: AIzaSyBRSWlBQembHn-ehjqvWxWMBeAKaj2KSDg
+        options:
+          model: gemini-2.0-flash          # Fast & cheap (recommended for chat)
+          # Other good options:
+          # gemini-2.0-flash-thinking-exp   (with reasoning)
+          # gemini-1.5-pro                  (more powerful)
+          temperature: 0.7
+          top-p: 0.95
+          max-tokens: 2048
+
+server:
+  port: 7070

@@ -1,6 +1,5 @@
 package cz.netsquire.kgcore.controler;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +8,6 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/auth")
-@RequiredArgsConstructor
 public class Auth {
 
     @GetMapping({"/hello", "/hello/"})
@@ -19,7 +17,7 @@ public class Auth {
     }
 
     private AuthResponse checkAuth(String user, String password) {
-        if (Objects.equals(user, password) & Objects.equals(user, "admin")) {
+        if (Objects.equals(user, password) && Objects.equals(user, "admin")) {
             return new AuthResponse("OK", "ADMIN_ROLE");
         } else {
             return new AuthResponse("NO_OK", "__UNKNOWN__");

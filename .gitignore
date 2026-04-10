@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local environment files (DO NOT COMMIT .env with secrets!)
+.env
+.env.local
+.env.*
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log

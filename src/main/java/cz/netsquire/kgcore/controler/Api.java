@@ -1,6 +1,7 @@
 package cz.netsquire.kgcore.controler;
 
-import lombok.RequiredArgsConstructor;
+import cz.netsquire.kgcore.chat.GeminiService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -8,13 +9,17 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@RequiredArgsConstructor
 public class Api {
 
+    @Autowired
+    GeminiService geminiService;
+
     @PostMapping("/deepvision")
-    String deepVision(@RequestBody String box) {
-        System.out.println("--\nGOT (post) payload box: " + box);
-        String response = "DeepVision processed: " + box;
+    InsightResponse deepVision(@RequestBody InsightRequest insight) {
+        System.out.println("--\nGOT (post) payload insight: " + insight);
+        String ans = geminiService.answer(insight.prompt()).text();
+        InsightResponse response = new InsightResponse("-- This is deep vision: "
+                + insight.prompt() + " --" + ans);
         System.out.println("PRODUCED: " + response);
         return response;
     }
@@ -26,7 +31,7 @@ public class Api {
 
     @GetMapping({"/status", "/status/"})
     Status status() {
-        return new Status("SOME_STATE","API is running", 150);
+        return new Status("SOME_STATE", "API is running", 150);
     }
 
     @GetMapping("news")
@@ -44,12 +49,23 @@ public class Api {
     }
 }
 
-record Status(String state, String message, int code) {}
+record InsightRequest(String prompt, Long timestamp) {
+    public InsightRequest(String prompt) {
+        this(prompt, System.currentTimeMillis());
+    }
+}
 
-record NewsArticle(String title, String text  /*, List<Tag> tags, List<NewsArticle> related*/) {}
+record InsightResponse(String result) {
+}
+
+record Status(String state, String message, int code) {
+}
+
+record NewsArticle(String title, String text  /*, List<Tag> tags, List<NewsArticle> related*/) {
+}
 
 record Tag(String concept, float relevance) {
-//    static int num;
+    //    static int num;
     public Tag(String concept) {
         this(concept, 1.0f);
     }
