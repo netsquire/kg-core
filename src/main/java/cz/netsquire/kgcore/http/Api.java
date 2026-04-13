@@ -1,6 +1,7 @@
-package cz.netsquire.kgcore.controler;
+package cz.netsquire.kgcore.http;
 
-import cz.netsquire.kgcore.chat.AiService;
+import cz.netsquire.kgcore.ai.ChatService;
+import cz.netsquire.kgcore.ai.GeminiStructuredOutput;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -12,13 +13,16 @@ import java.util.List;
 public class Api {
 
     @Autowired
-    AiService aiService;
+    ChatService chatService;
+
+    @Autowired
+    GeminiStructuredOutput structured;
 
     @PostMapping("/deepvision")
     InsightResponse deepVision(@RequestBody InsightRequest insight) {
         System.out.println("--\nGOT (post) payload insight: " + insight);
-        String ans = aiService.askAi(insight.prompt()).text();
-//        String ans = aiService.answer(insight.prompt()).text();
+//        String ans = chatService.askAi(insight.prompt()).text();
+        String ans = structured.structuredOutput(insight.prompt()).text();
         InsightResponse response = new InsightResponse("-- Deep vision: " + insight.prompt() + " --" + ans);
         System.out.println("PRODUCED: " + response);
         return response;

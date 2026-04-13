@@ -1,4 +1,4 @@
-package cz.netsquire.kgcore.controler;
+package cz.netsquire.kgcore.http;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;

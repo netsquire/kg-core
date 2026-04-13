@@ -1,4 +1,4 @@
-package cz.netsquire.kgcore.controler;
+package cz.netsquire.kgcore.http;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

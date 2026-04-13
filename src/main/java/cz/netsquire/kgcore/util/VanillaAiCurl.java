@@ -2,7 +2,6 @@ package cz.netsquire.kgcore.util;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
-import com.google.genai.types.Model;
 
 public class VanillaAiCurl {
     public static void main(String[] args) {
@@ -27,7 +26,7 @@ public class VanillaAiCurl {
 
     GenerateContentResponse generateContentResponse() {
         GenerateContentResponse response;
-        try (Client client = Client.builder().apiKey("AIzaSyBWxhUk1nYuMZHfCrrPoPpl-z1blLjqujI").build()) {
+        try (Client client = Client.builder().apiKey(System.getProperty("GOOGLE_API_KEY")).build()) {
 
             response = client.models.generateContent(
                     "gpt-4.0-mini",
