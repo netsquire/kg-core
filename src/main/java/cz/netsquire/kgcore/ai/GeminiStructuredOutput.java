@@ -46,76 +46,59 @@ public class GeminiStructuredOutput {
                 "gemini-3-flash-preview",
                 "gemini-4-flash-preview"
         };
-//        System.out.println("Models supporting structured output:");
-//        for (String model : modelsSupportingStructuredOutput) {
-//            System.out.println("- " + model);
-//        }
         var listModelConfig = ListModelsConfig.builder().build();
-        client.models.list(listModelConfig).iterator().forEachRemaining(model -> {
-            System.out.println("Model Name: " + model.name());
-            System.out.println("Supported Actions: " + model.supportedActions());
-//            System.out.println("Tuned Model Info: " + model.tunedModelInfo());
-            System.out.println("Token Limit: " + model.outputTokenLimit());
-//            System.out.println("::: " + model);
-            System.out.println("-----------------------------------");
-        });
+        client.models.list(listModelConfig).iterator()
+                .forEachRemaining(model -> {
+                    System.out.println("Model Name: " + model.name());
+                    System.out.println("Supported Actions: " + model.supportedActions());
+                    System.out.println("Token Limit: " + model.outputTokenLimit());
+                    System.out.println("---");
+                });
     }
 
     public GenerateContentResponse structuredOutput(String prompt) {
         String modelId = "gemini-2.5-flash-lite";
 
-        String system_prompt =
-                """
-                        Your role is to identify context, connected concepts, related notions and links among them for the given concept.
-                        Every pair  of the concept/notion contains a unique integer ID and string value.
-                        Links contains of pairs of integer IDs of the connected concepts/notions.
-                        Always respond with a JSON object that adheres to the following schema:
-                        {
-                          "context": "string",
-                          "concepts": [{"integer":"string"}, {"integer":"string"}, ...],
-                          "notions": [{"integer":"string"}, {"integer":"string"}, ...],
-                          "links": [{"integer":"integer"}, {"integer":"integer"}, ...]
-                        }
-                        Limit the number of concepts, notions to 5 each and links up to 15.
-                        --
-                        User's input: (%s)
-                """.formatted(prompt);
+        String system_prompt ="""
+              Your role is to identify context, connected concepts, related notions and links among them for the given concept.
+              Every pair  of the concept/notion contains a unique integer ID and string value.
+              Links contains of pairs of integer IDs of the connected concepts/notions.
+              Respond with a JSON object that adheres to the following schema:
+                     {
+                     "context": "string",
+                     "concepts": [{"integer":"string"}, {"integer":"string"}, ...],
+                     "notions": [{"integer":"string"}, {"integer":"string"}, ...],
+                     "links": [{"integer":"integer"}, {"integer":"integer"}, ...]
+                     }
+                     Limit the number of concepts, notions to 5 each and links up to 15.
+                     --
+                     User's input: (%s)
+              """.formatted(prompt);
 
         GenerateContentResponse response;
-//        try (Client client = Client.builder()
-//                .apiKey(System.getProperty("GOOGLE_API_KEY"))
-//                .httpOptions(HttpOptions.builder()
-//                                .apiVersion("v1")
-//                                .build())
-//                .build()) {
-            Schema structuredSchema = Schema.builder()
-                    .type(Type.Known.OBJECT)
-                    .properties(ImmutableMap.of(
-                            "context", stringSchema(),
-                            "concepts", arrayOfStringSchema(),
-                            "notions", arrayOfStringSchema(),
-                            "links", arrayOfLinksSchema()
-                    ))
-                    .required("context", "concepts", "notions", "links")
-                    .build();
-            Schema rootSchema = Schema.builder()
-                    .type(Type.Known.ARRAY)
-                    .items(structuredSchema)
-                    .build();
-            GenerateContentConfig config = GenerateContentConfig.builder()
-                    .candidateCount(1)
-                    .responseJsonSchema(rootSchema)          // ← keep schema to request structured JSON
-                    .build();
-//            System.out.println("\nstructuredSchema: " + structuredSchema);
-//            System.out.println("\nrootSchema: " + rootSchema);
-//            System.out.println("\nconfig: " + config);
-            System.out.println("---");
+        Schema structuredSchema = Schema.builder()
+                .type(Type.Known.OBJECT)
+                .properties(ImmutableMap.of(
+                        "context", stringSchema(),
+                        "concepts", arrayOfStringSchema(),
+                        "notions", arrayOfStringSchema(),
+                        "links", arrayOfLinksSchema()
+                ))
+                .required("context", "concepts", "notions", "links")
+                .build();
+        Schema rootSchema = Schema.builder()
+                .type(Type.Known.ARRAY)
+                .items(structuredSchema)
+                .build();
+        GenerateContentConfig config = GenerateContentConfig.builder()
+                .candidateCount(1)
+                .responseJsonSchema(rootSchema)          // ← keep schema to request structured JSON
+                .build();
+        System.out.println("---");
 
-            // client
-            response = client.models.generateContent(modelId, system_prompt, config);
-            System.out.println("Structured JSON output:");
-            System.out.println(response);
-//        }
+        response = client.models.generateContent(modelId, system_prompt, config);
+        System.out.println("Structured JSON output:");
+        System.out.println(response);
         return response;
     }
 
@@ -137,12 +120,13 @@ public class GeminiStructuredOutput {
                 .build();
     }
 
-    private Schema stringSchema(){
+    private Schema stringSchema() {
         return Schema.builder()
                 .type(Type.Known.STRING)
                 .build();
     }
-    private Schema arrayOfStringSchema(){
+
+    private Schema arrayOfStringSchema() {
         return Schema.builder()
                 .type(Type.Known.ARRAY)
                 .items(Schema.builder().type(Type.Known.STRING).build())

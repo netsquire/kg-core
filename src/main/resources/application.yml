@@ -5,7 +5,9 @@ spring:
       static-locations:
 #        - classpath:/static/
 #        - classpath:/Users/netsquire/stage/kg-ui/
-        - file:/Users/netsquire/stage/kg-ui
+
+#        - file:/Users/netsquire/stage/kg-ui
+        - file:/Users/netsquire/stage/visual-graph/
         - file:/var/www/shared/
 
   mvc:
