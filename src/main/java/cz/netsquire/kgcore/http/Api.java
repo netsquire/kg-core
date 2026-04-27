@@ -1,10 +1,14 @@
 package cz.netsquire.kgcore.http;
 
-import cz.netsquire.kgcore.ai.ChatService;
-import cz.netsquire.kgcore.ai.GeminiStructuredOutput;
+import com.google.common.base.Converter;
+import cz.netsquire.kgcore.ai.AiStructuredOutput;
+import cz.netsquire.kgcore.ai.ConvertService;
+import cz.netsquire.kgcore.model.KnowledgeGraph;
+import cz.netsquire.kgcore.model.StructuredOutput;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -13,16 +17,27 @@ import java.util.List;
 public class Api {
 
     @Autowired
-    ChatService chatService;
-
+    AiStructuredOutput structured;
+    
     @Autowired
-    GeminiStructuredOutput structured;
+    ConvertService convertService;
+    
+    private final ObjectMapper mapper = new ObjectMapper();
+    
+    @PostMapping("/deepgraph")
+    KnowledgeGraph deepGraph(@RequestBody InsightRequest insight) {
+        System.out.println("--\nGOT (post) payload insight: " + insight);
+        String contentString = structured.output(insight.prompt()).text();
+        StructuredOutput structuredContent = mapper.readValue(contentString, StructuredOutput.class);
+        KnowledgeGraph graph = convertService.fromStructuredOutput(structuredContent);
+        System.out.println("GRAPH PRODUCED: " + graph);
+        return graph;
+    }
 
     @PostMapping("/deepvision")
     InsightResponse deepVision(@RequestBody InsightRequest insight) {
         System.out.println("--\nGOT (post) payload insight: " + insight);
-//        String ans = chatService.askAi(insight.prompt()).text();
-        String ans = structured.structuredOutput(insight.prompt()).text();
+        String ans = structured.output(insight.prompt()).text();
         InsightResponse response = new InsightResponse("-- Deep vision: " + insight.prompt() + " --" + ans);
         System.out.println("PRODUCED: " + response);
         return response;
@@ -69,7 +84,6 @@ record NewsArticle(String title, String text  /*, List<Tag> tags, List<NewsArtic
 }
 
 record Tag(String concept, float relevance) {
-    //    static int num;
     public Tag(String concept) {
         this(concept, 1.0f);
     }

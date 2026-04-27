@@ -3,17 +3,20 @@ package cz.netsquire.kgcore.ai;
 import com.google.common.collect.ImmutableMap;
 import com.google.genai.Client;
 import com.google.genai.types.*;
+import com.google.gson.Gson;
 import cz.netsquire.kgcore.util.DotenvLoader;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 
 @Service
-public class GeminiStructuredOutput {
+public class AiStructuredOutput { // extract to Interface and implement in GeminiStructuredOutputService
 
     Client client;
+    private final Gson gson = new Gson();
+    private final GenerateContentConfig contentConfig = buildConceptSchema();
 
-    public GeminiStructuredOutput() {
+    public AiStructuredOutput() {
         try {
             DotenvLoader.load(new File(".env"));
         } catch (Exception ignore) {
@@ -27,9 +30,7 @@ public class GeminiStructuredOutput {
     }
 
     public static void main(String[] args) {
-        GeminiStructuredOutput example = new GeminiStructuredOutput();
-//        example.askProperModels();
-        GenerateContentResponse response = example.structuredOutput("cybersafety");
+        GenerateContentResponse response = new AiStructuredOutput().output("car");
         System.out.println(response);
     }
 
@@ -56,63 +57,56 @@ public class GeminiStructuredOutput {
                 });
     }
 
-    public GenerateContentResponse structuredOutput(String prompt) {
-        String modelId = "gemini-2.5-flash-lite";
-
-        String system_prompt ="""
-              Your role is to identify context, connected concepts, related notions and links among them for the given concept.
-              Every pair  of the concept/notion contains a unique integer ID and string value.
-              Links contains of pairs of integer IDs of the connected concepts/notions.
-              Respond with a JSON object that adheres to the following schema:
-                     {
-                     "context": "string",
-                     "concepts": [{"integer":"string"}, {"integer":"string"}, ...],
-                     "notions": [{"integer":"string"}, {"integer":"string"}, ...],
-                     "links": [{"integer":"integer"}, {"integer":"integer"}, ...]
-                     }
-                     Limit the number of concepts, notions to 5 each and links up to 15.
-                     --
-                     User's input: (%s)
-              """.formatted(prompt);
-
-        GenerateContentResponse response;
+    private GenerateContentConfig buildConceptSchema() {
         Schema structuredSchema = Schema.builder()
                 .type(Type.Known.OBJECT)
                 .properties(ImmutableMap.of(
                         "context", stringSchema(),
-                        "concepts", arrayOfStringSchema(),
-                        "notions", arrayOfStringSchema(),
-                        "links", arrayOfLinksSchema()
+                        "graph", auxLinksArraySchema()
                 ))
-                .required("context", "concepts", "notions", "links")
+                .required("context", "graph")
                 .build();
         Schema rootSchema = Schema.builder()
                 .type(Type.Known.ARRAY)
                 .items(structuredSchema)
                 .build();
-        GenerateContentConfig config = GenerateContentConfig.builder()
+        return GenerateContentConfig.builder()
                 .candidateCount(1)
-                .responseJsonSchema(rootSchema)          // ← keep schema to request structured JSON
+                .responseJsonSchema(rootSchema)
                 .build();
-        System.out.println("---");
-
-        response = client.models.generateContent(modelId, system_prompt, config);
-        System.out.println("Structured JSON output:");
-        System.out.println(response);
-        return response;
     }
 
-    private Schema arrayOfLinksSchema() {
+    public GenerateContentResponse output(String prompt) {
+        String modelId = "gemini-2.5-flash-lite";
+        String system_prompt = """
+                Your role is to identify context, connected/related concepts
+                and semantic links among them according their Cognitive Distance.
+                Then combine found concepts and links to bound pairs, up to 5.
+                
+                Don't mention the given concept in the output, only related concepts and links among them.
+                Respond with a JSON object that adheres to the following schema:
+                       {
+                       "context": "string",
+                       "graph": [{"concept1":"link1"}, {"concept2":"link2"}, ...],
+                       }
+                       --
+                       Given: (%s)
+                """.formatted(prompt);
+        return client.models.generateContent(modelId, system_prompt, contentConfig);
+        // used tokens ???
+    }
+
+    private Schema auxLinksArraySchema() {
         var node = Schema.builder()
-                .type(Type.Known.INTEGER)
+                .type(Type.Known.STRING)
+                .build();
+        var edge = Schema.builder()
+                .type(Type.Known.STRING)
                 .build();
         var link = Schema.builder()
                 .type(Type.Known.OBJECT)
-                .properties(ImmutableMap.of(
-                        "from", node,
-                        "to", node
-                ))
-                .required("from", "to")
+                .properties(ImmutableMap.of("node", node, "edge", edge))
+                .required("node", "edge")
                 .build();
         return Schema.builder()
                 .type(Type.Known.ARRAY)
@@ -129,7 +123,9 @@ public class GeminiStructuredOutput {
     private Schema arrayOfStringSchema() {
         return Schema.builder()
                 .type(Type.Known.ARRAY)
-                .items(Schema.builder().type(Type.Known.STRING).build())
+                .items(Schema.builder()
+                        .type(Type.Known.STRING)
+                        .build())
                 .build();
     }
 }

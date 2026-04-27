@@ -1,0 +1,32 @@
+@startuml
+class com.netsquire.logos.Label {
+~ String title
+}
+
+class com.netsquire.logos.Edge {
+}
+class com.netsquire.logos.Link {
+~ int id
+~ String label
+~ String type
+~ Node source
+~ Node target
+}
+
+class com.netsquire.logos.Concept {
+}
+class com.netsquire.logos.Node {
+~ int id
+~ String label
+~ String type
+}
+
+class com.netsquire.logos.Tag {
+}
+
+
+com.netsquire.logos.Link <|-- com.netsquire.logos.Edge
+com.netsquire.logos.Concept <|-- com.netsquire.logos.Node
+com.netsquire.logos.Label <|-- com.netsquire.logos.Tag
+
+@enduml
