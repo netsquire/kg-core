@@ -1,7 +1,6 @@
 package cz.netsquire.kgcore.http;
 
-import com.google.common.base.Converter;
-import cz.netsquire.kgcore.ai.AiStructuredOutput;
+import cz.netsquire.kgcore.ai.AiStructuredService;
 import cz.netsquire.kgcore.ai.ConvertService;
 import cz.netsquire.kgcore.model.KnowledgeGraph;
 import cz.netsquire.kgcore.model.StructuredOutput;
@@ -17,7 +16,7 @@ import java.util.List;
 public class Api {
 
     @Autowired
-    AiStructuredOutput structured;
+    AiStructuredService structured;
     
     @Autowired
     ConvertService convertService;
@@ -28,6 +27,7 @@ public class Api {
     KnowledgeGraph deepGraph(@RequestBody InsightRequest insight) {
         System.out.println("--\nGOT (post) payload insight: " + insight);
         String contentString = structured.output(insight.prompt()).text();
+        // to service vrací JSON string, který je třeba převést na StructuredOutput a následně na KnowledgeGraph
         StructuredOutput structuredContent = mapper.readValue(contentString, StructuredOutput.class);
         KnowledgeGraph graph = convertService.fromStructuredOutput(structuredContent);
         System.out.println("GRAPH PRODUCED: " + graph);
